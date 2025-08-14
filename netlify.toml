@@ -99,6 +99,6 @@
   package = "@netlify/plugin-lighthouse"
 
 [plugins.inputs]
-  urls = ["https://ecommerce-demo-app.netlify.app"]
+  audit_url = "https://e-commerse-theta.netlify.app"
   output_path = "reports/lighthouse.html"
-  chrome_flags = "--headless --no-sandbox --disable-gpu"
+  thresholds = "performance=0.8,accessibility=0.9,best-practices=0.8,seo=0.9"
