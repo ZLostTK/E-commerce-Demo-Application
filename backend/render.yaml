@@ -1,0 +1,46 @@
+services:
+  - type: web
+    name: ecommerce-backend
+    runtime: node
+    plan: starter
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3000
+      - key: MONGODB_URI
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: STRIPE_SECRET_KEY
+        sync: false
+      - key: CORS_ORIGIN
+        value: https://ecommerce-demo-app.vercel.app,https://ecommerce-demo-app.netlify.app
+    autoDeploy: true
+    branch: main
+
+  - type: web
+    name: ecommerce-backend-staging
+    runtime: node
+    plan: starter
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: staging
+      - key: PORT
+        value: 3000
+      - key: MONGODB_URI
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: STRIPE_SECRET_KEY
+        sync: false
+      - key: CORS_ORIGIN
+        value: https://ecommerce-demo-app-staging.vercel.app
+    autoDeploy: true
+    branch: develop

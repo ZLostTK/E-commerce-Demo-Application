@@ -1,0 +1,98 @@
+name: Release Management
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  release:
+    name: Create Release
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Build application
+        run: npm run build
+        
+      - name: Generate changelog
+        id: changelog
+        run: |
+          echo "CHANGELOG<<EOF" >> $GITHUB_OUTPUT
+          git log --oneline $(git describe --tags --abbrev=0 HEAD^)..HEAD >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+          
+      - name: Create Release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          body: |
+            ## 🚀 Nuevas características
+            
+            ${{ steps.changelog.outputs.CHANGELOG }}
+            
+            ## 📦 Instalación
+            
+            ```bash
+            npm install
+            npm run build
+            ```
+            
+            ## 🔧 Configuración
+            
+            Asegúrate de configurar las variables de entorno necesarias.
+            
+            ## 🐛 Reportar bugs
+            
+            Si encuentras algún problema, por favor crea un issue en GitHub.
+          draft: false
+          prerelease: false
+          
+      - name: Upload build artifacts
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./dist
+          asset_name: ecommerce-platform-${{ github.ref_name }}.zip
+          asset_content_type: application/zip
+
+  notify-release:
+    name: Notify Release
+    runs-on: ubuntu-latest
+    needs: release
+    if: always()
+    
+    steps:
+      - name: Notify Discord
+        uses: sarisia/actions-status-discord@v1
+        if: needs.release.result == 'success'
+        with:
+          webhook: ${{ secrets.DISCORD_WEBHOOK }}
+          status: success
+          title: "🚀 Nueva versión liberada"
+          description: "Versión ${{ github.ref_name }} ha sido publicada exitosamente"
+          
+      - name: Notify on failure
+        uses: sarisia/actions-status-discord@v1
+        if: needs.release.result == 'failure'
+        with:
+          webhook: ${{ secrets.DISCORD_WEBHOOK }}
+          status: failure
+          title: "❌ Error en el release"
+          description: "Falló la publicación de la versión ${{ github.ref_name }}"
