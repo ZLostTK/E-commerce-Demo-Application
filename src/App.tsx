@@ -10,12 +10,17 @@ import CheckoutPage from "./pages/CheckoutPage";
 import LoginPage from "./pages/LoginPage";
 import AdminPage from "./pages/AdminPage";
 import CategoryPage from "./pages/CategoryPage";
+import DemoIndicator from "./components/DemoIndicator";
+import { useBackendStatus } from "./hooks/useBackendStatus";
 
 function App() {
+  const { status, isDemoMode } = useBackendStatus();
+
   return (
     <CartProvider>
       <Router>
         <div className="min-h-screen flex flex-col">
+          <DemoIndicator isDemoMode={isDemoMode} backendStatus={status} />
           <Navbar />
           <main className="flex-grow">
             <Routes>

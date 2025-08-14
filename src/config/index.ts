@@ -7,6 +7,12 @@ export const config = {
   APP_NAME: import.meta.env.VITE_APP_NAME || "Anon E-Commerce",
   APP_VERSION: import.meta.env.VITE_APP_VERSION || "1.0.0",
 
+  // Demo Configuration
+  DEMO_MODE: import.meta.env.VITE_DEMO_MODE === "true",
+  FALLBACK_API:
+    import.meta.env.VITE_FALLBACK_API ||
+    "https://ecommerce-demo-backend.railway.app/api",
+
   // External Services
   PEXELS_API_KEY: import.meta.env.VITE_PEXELS_API_KEY,
 

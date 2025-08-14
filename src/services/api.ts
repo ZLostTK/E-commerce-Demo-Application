@@ -1,4 +1,5 @@
 import config from "../config";
+import { DemoService } from "./demoService";
 
 const API_BASE_URL = config.API_URL;
 
@@ -62,15 +63,23 @@ export interface BusinessConfig {
 
 class ApiService {
   private baseUrl: string;
+  private isDemoMode: boolean;
 
   constructor(baseUrl: string) {
     this.baseUrl = baseUrl;
+    this.isDemoMode = import.meta.env.VITE_DEMO_MODE === "true";
   }
 
   private async request<T>(
     endpoint: string,
     options?: RequestInit
   ): Promise<ApiResponse<T>> {
+    // Si estamos en modo demo, usar DemoService
+    if (this.isDemoMode) {
+      console.log("🔄 Using demo mode - backend not available");
+      return this.handleDemoRequest<T>(endpoint, options);
+    }
+
     const url = `${this.baseUrl}${endpoint}`;
 
     try {
@@ -90,8 +99,62 @@ class ApiService {
       return data;
     } catch (error) {
       console.error("API request failed:", error);
-      throw error;
+      console.log("🔄 Falling back to demo mode");
+
+      // Fallback a demo si la API falla
+      return this.handleDemoRequest<T>(endpoint, options);
     }
+  }
+
+  private async handleDemoRequest<T>(
+    endpoint: string,
+    options?: RequestInit
+  ): Promise<ApiResponse<T>> {
+    // Mapear endpoints a métodos del DemoService
+    const method = this.getDemoMethod(endpoint);
+
+    if (method && DemoService[method]) {
+      try {
+        const result = await DemoService[method]();
+        return result;
+      } catch (error) {
+        console.error("Demo service error:", error);
+        throw error;
+      }
+    }
+
+    throw new Error(`Demo method not found for endpoint: ${endpoint}`);
+  }
+
+  private getDemoMethod(endpoint: string): string | null {
+    const methodMap: { [key: string]: string } = {
+      "/config/public": "getPublicConfig",
+      "/products": "getProducts",
+      "/products/featured": "getFeaturedProducts",
+      "/products/deal-of-the-day": "getDealOfTheDay",
+      "/products/new-arrivals": "getNewArrivals",
+      "/products/trending": "getTrendingProducts",
+      "/products/top-rated": "getTopRatedProducts",
+      "/products/categories": "getCategories",
+    };
+
+    // Buscar coincidencia exacta o parcial
+    for (const [pattern, method] of Object.entries(methodMap)) {
+      if (endpoint.startsWith(pattern)) {
+        return method;
+      }
+    }
+
+    // Para endpoints con parámetros
+    if (endpoint.match(/^\/products\/[^\/]+$/)) {
+      return "getProduct";
+    }
+
+    if (endpoint.match(/^\/products\/category\/[^\/]+$/)) {
+      return "getProductsByCategory";
+    }
+
+    return null;
   }
 
   // Configuration
