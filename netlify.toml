@@ -101,4 +101,4 @@
 [plugins.inputs]
   audit_url = "https://e-commerse-theta.netlify.app"
   output_path = "reports/lighthouse.html"
-  thresholds = "performance=0.8,accessibility=0.9,best-practices=0.8,seo=0.9"
+  thresholds = '{"performance": 0.8, "accessibility": 0.9, "best-practices": 0.8, "seo": 0.9}'
