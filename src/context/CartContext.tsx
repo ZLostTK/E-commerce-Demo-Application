@@ -1,11 +1,16 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
-import { Product, CartItem } from '../types';
+import { Product } from '../services/api';
+
+interface CartItem {
+  product: Product;
+  quantity: number;
+}
 
 interface CartContextType {
   items: CartItem[];
   addItem: (product: Product, quantity?: number) => void;
-  removeItem: (productId: number) => void;
-  updateQuantity: (productId: number, quantity: number) => void;
+  removeItem: (productId: string) => void;
+  updateQuantity: (productId: string, quantity: number) => void;
   getTotalPrice: () => number;
   getTotalItems: () => number;
   clearCart: () => void;
@@ -26,39 +31,14 @@ interface CartProviderProps {
 }
 
 export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
-  const [items, setItems] = useState<CartItem[]>([
-    {
-      product: {
-        id: 1,
-        name: "Premium Wireless Headphones",
-        price: 299,
-        image: "https://images.pexels.com/photos/3394650/pexels-photo-3394650.jpeg?auto=compress&cs=tinysrgb&w=500",
-        description: "High-quality wireless headphones with noise cancellation",
-        category: "Electronics",
-        stock: 10
-      },
-      quantity: 2
-    },
-    {
-      product: {
-        id: 2,
-        name: "Smart Watch Series X",
-        price: 449,
-        image: "https://images.pexels.com/photos/437037/pexels-photo-437037.jpeg?auto=compress&cs=tinysrgb&w=500",
-        description: "Advanced smartwatch with health monitoring",
-        category: "Electronics",
-        stock: 5
-      },
-      quantity: 1
-    }
-  ]);
+  const [items, setItems] = useState<CartItem[]>([]);
 
   const addItem = (product: Product, quantity: number = 1) => {
     setItems(prevItems => {
-      const existingItem = prevItems.find(item => item.product.id === product.id);
+      const existingItem = prevItems.find(item => item.product._id === product._id);
       if (existingItem) {
         return prevItems.map(item =>
-          item.product.id === product.id
+          item.product._id === product._id
             ? { ...item, quantity: item.quantity + quantity }
             : item
         );
@@ -67,18 +47,18 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
     });
   };
 
-  const removeItem = (productId: number) => {
-    setItems(prevItems => prevItems.filter(item => item.product.id !== productId));
+  const removeItem = (productId: string) => {
+    setItems(prevItems => prevItems.filter(item => item.product._id !== productId));
   };
 
-  const updateQuantity = (productId: number, quantity: number) => {
+  const updateQuantity = (productId: string, quantity: number) => {
     if (quantity <= 0) {
       removeItem(productId);
       return;
     }
     setItems(prevItems =>
       prevItems.map(item =>
-        item.product.id === productId
+        item.product._id === productId
           ? { ...item, quantity }
           : item
       )

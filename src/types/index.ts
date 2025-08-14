@@ -2,10 +2,14 @@ export interface Product {
   id: number;
   name: string;
   price: number;
+  originalPrice?: number;
   image: string;
   description: string;
   category: string;
   stock: number;
+  rating?: number;
+  discount?: number;
+  isDealOfTheDay?: boolean;
 }
 
 export interface CartItem {
